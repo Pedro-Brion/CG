@@ -5,7 +5,8 @@ import {initRenderer,
         initDefaultSpotlight,
         createGroundPlaneXZ,
         SecondaryBox, 
-        onWindowResize} from "../libs/util/util.js";
+        onWindowResize,
+        degreesToRadians} from "../libs/util/util.js";
 
 let scene, renderer, light, camera, keyboard;
 scene = new THREE.Scene();    // Create main scene
@@ -20,7 +21,9 @@ scene.add(groundPlane);
 // Create objects
 createTeapot( 2.0,  0.4,  0.0, Math.random() * 0xffffff);
 createTeapot(0.0,  0.4,  2.0, Math.random() * 0xffffff);  
-createTeapot(0.0,  0.4, -2.0, Math.random() * 0xffffff);    
+createTeapot(0.0,  0.4, -2.0, Math.random() * 0xffffff);
+
+//
 
 let camPos  = new THREE.Vector3(3, 4, 8);
 let camUp   = new THREE.Vector3(0.0, 1.0, 0.0);
@@ -33,17 +36,18 @@ camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight,
    camera.up.copy( camUp );
    camera.lookAt(camLook);
 
+const cameraMan = new THREE.Object3D()
+cameraMan.add(camera);
+scene.add(cameraMan);
+
 render();
 
 function updateCamera()
 {
    // DICA: Atualize a câmera aqui!
 
-   camera.position.copy(camPos);
-   camera.lookAt(camLook);
-
-   message.changeMessage("Pos: {" + camPos.x + ", " + camPos.y + ", " + camPos.z + "} " + 
-                         "/ LookAt: {" + camLook.x + ", " + camLook.y + ", " + camLook.z + "}");
+   message.changeMessage("Pos: {" + cameraMan.position.x + ", " + cameraMan.position.y + ", " + cameraMan.position.z + "} " + 
+                         "/ Rotation: {" + camLook.x + ", " + camLook.y + ", " + camLook.z + "}");
 }
 
 function keyboardUpdate() {
@@ -51,19 +55,19 @@ function keyboardUpdate() {
    keyboard.update();   
    // DICA: Insira aqui seu código para mover a câmera
 
-   if(keyboard.pressed('up'))       camPos.z-=0.1;
-   if(keyboard.pressed('down'))     camPos.z+=0.1;
-   if(keyboard.pressed('left'))     camPos.x-=0.1;
-   if(keyboard.pressed('right'))    camPos.x+=0.1;
-   if(keyboard.pressed('pageup'))   camPos.y+=0.1
-   if(keyboard.pressed('pagedown')) camPos.y-=0.1
+   if(keyboard.pressed('up'))      cameraMan.rotateX(degreesToRadians(1));
+   if(keyboard.pressed('down'))    cameraMan.rotateX(degreesToRadians(-1));
+   if(keyboard.pressed('left'))    cameraMan.rotateY(degreesToRadians(1));
+   if(keyboard.pressed('right'))   cameraMan.rotateY(degreesToRadians(-1));
+   if(keyboard.pressed('Q'))       cameraMan.rotateZ(degreesToRadians(1));
+   if(keyboard.pressed('E'))       cameraMan.rotateZ(degreesToRadians(-1));
 
-   if(keyboard.pressed('W'))        camLook.z-=0.1;
-   if(keyboard.pressed('S'))        camLook.z+=0.1;
-   if(keyboard.pressed('A'))        camLook.x-=0.1;
-   if(keyboard.pressed('D'))        camLook.x+=0.1;
-   if(keyboard.pressed('Q'))        camLook.y+=0.1;
-   if(keyboard.pressed('E'))        camLook.y-=0.1;   
+   if(keyboard.pressed('W'))       cameraMan.translateZ(-0.1);
+   if(keyboard.pressed('S'))       cameraMan.translateZ(+0.1);
+   if(keyboard.pressed('D'))       cameraMan.translateX(+0.1);
+   if(keyboard.pressed('A'))       cameraMan.translateX(-0.1);
+   if(keyboard.pressed('ctrl'))    cameraMan.translateY(-0.1);
+   if(keyboard.pressed('space'))   cameraMan.translateY(+0.1);   
    updateCamera();
 }
 
