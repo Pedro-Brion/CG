@@ -519,7 +519,7 @@ export function createGroundPlane(width, height, widthSegments = 10, heightSegme
 /**
  * Create a ground plane that has a wireframe over it
  */
-export function createGroundPlaneWired(width, height, widthSegments = 10, heightSegments = 10, gcolor = null)
+export function createGroundPlaneWired(width, height, gcolor = null, widthSegments = 10, heightSegments = 10)
 {
   if(!gcolor) gcolor = "rgb(60, 30, 150)";  
   
