@@ -13,10 +13,10 @@ let light    = initDefaultSpotlight(scene, new THREE.Vector3(7.0, 7.0, 7.0));
 let camera   = initCamera(new THREE.Vector3(3.6, 4.6, 8.2)); // Init camera in this position
 let trackballControls = new TrackballControls(camera, renderer.domElement );
 
+let initialPosition1 = new THREE.Vector3(0,0.2,0);
+let initialPosition2 = new THREE.Vector3(0,0.2,3);
+
 // Show axes 
-let axesHelper = new THREE.AxesHelper( 5 );
-  axesHelper.translateY(0.1);
-scene.add( axesHelper );
 
 // Listen window size changes
 window.addEventListener( 'resize', function(){onWindowResize(camera, renderer)}, false );
@@ -38,37 +38,49 @@ scene.add(sphere1);
 //Sphere 2
 let sphere2 = new THREE.Mesh(geometry, material);
   sphere2.castShadow = true;
-  sphere2.position.set(0, 0.2, 0);
+  sphere2.position.set(0, 0.2, 3);
 scene.add(sphere2);
 
 // Variables that will be used for linear interpolation
-const lerpConfig = {
-  destination: new THREE.Vector3(0.0, 0.2, 0.0),
+const lerpConfig1 = {
+  destination: new THREE.Vector3(5,0.2,0),
   alpha: 0.01,
+  move: true
+}
+const lerpConfig2 = {
+  destination: new THREE.Vector3(5 ,0.2,3),
+  alpha: 0.05,
   move: true
 }
 
 buildInterface();
 render();
 
+function reset() {
+  sphere1.position.copy(initialPosition1);
+  sphere2.position.copy(initialPosition2);
+}
+
 function buildInterface()
-{     
+{
+  const controls=new function (){
+    this.onReset = reset;
+  }
+      
   let gui = new GUI();
   let folder = gui.addFolder("Lerp Options");
     folder.open();
-    folder.add(lerpConfig.destination, 'x', -5, 5).onChange();
-    folder.add(lerpConfig.destination, 'y', 0.1, 3).onChange();
-    folder.add(lerpConfig.destination, 'z', -5, 5).onChange();  
-    folder.add(lerpConfig, 'alpha', 0.01, 1).onChange();      
-    folder.add(lerpConfig, "move",  true)
-          .name("Move Object");
+    folder.add(lerpConfig1, 'move', true).name("Bola1");
+    folder.add(lerpConfig2, 'move', true).name("Bola2");
+    folder.add(controls,'onReset',false).name("Reset")
 }
 
 function render()
 {
   trackballControls.update();
 
-  if(lerpConfig.move) obj.position.lerp(lerpConfig.destination, lerpConfig.alpha);
+  if(lerpConfig1.move) sphere1.position.lerp(lerpConfig1.destination, lerpConfig1.alpha);
+  if(lerpConfig2.move) sphere2.position.lerp(lerpConfig2.destination, lerpConfig2.alpha);
 
   requestAnimationFrame(render);
   renderer.render(scene, camera) // Render scene
