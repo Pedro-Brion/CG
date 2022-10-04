@@ -1,37 +1,33 @@
 import * as THREE from "three";
 import { createGroundPlaneWired } from "../libs/util/util.js";
 import KeyboardState from '../libs/util/KeyboardState.js';
+import Player from "./player.js";
 export default class MainScene extends THREE.Scene {
 
 
   plane; //Ground Plane
-  player; //Player
+  player = new Player(); //Player
   paredes = []; //Walls
   obstaculo = []; // Obstacles
   keyboard = new KeyboardState();
+  s=72;
   
   camera={
-    holder:null,
-    camera:null,
+    holder:new THREE.Object3D(),
+    camera:new THREE.OrthographicCamera(-window.innerWidth / this.s, window.innerWidth / this.s,
+    window.innerHeight / this.s, window.innerHeight / -this.s, -this.s, this.s),
   }
 
   speed=0.1;
 
   //Função para adicionar elementos iniciais da cena
   initialize() {
+    this.player.initialize();
     //Creating Ground Plane
     this.plane = createGroundPlaneWired(20, 20, "rgb(255,200,23)");
     this.add(this.plane);
 
-    //Creating Player
-    const hitboxConfig = {
-      material: new THREE.MeshBasicMaterial({ color: "rgb(255,0,0)" }),
-      geometry: new THREE.BoxGeometry(1, 2, 1),
-    };
-    this.player = new THREE.Mesh(hitboxConfig.geometry, hitboxConfig.material);
-    this.player.position.set(0, 1, 0);
-
-    this.add(this.player);
+    this.add(this.player.obj);
 
     //Creating Wall Objects
     this.criaParede(0, 1.5, 10);
@@ -51,14 +47,49 @@ export default class MainScene extends THREE.Scene {
     this.criaCubo(-5, .5, 1);
     this.criaCubo(1, .5, -5);
     this.criaCubo(1, .5, 5);
+
+    
+    this.initializeCamera();
   }
 
   update() {
+    
+    let playerPosition = new THREE.Vector3();
+    const cameraOffset = new THREE.Vector3(-10,10,10);
+    
+    this.player.obj.getWorldPosition(playerPosition);
+    this.camera.holder.position.copy(playerPosition.add(cameraOffset));
+
+    if (this.keyboard.pressed("W")) {
+      this.player.moveForward(this.speed);
+      this.player.changeAngle('north')
+    };    
+    if (this.keyboard.pressed("S")) {
+      this.player.moveForward(this.speed)
+      this.player.changeAngle("south")
+    };
+    if (this.keyboard.pressed("A")) {
+      this.player.moveForward(this.speed)
+      this.player.changeAngle("west")
+    };
+    if (this.keyboard.pressed("D")) {
+      this.player.moveForward(this.speed)
+      this.player.changeAngle("east")
+    };
+
+
+    this.player.update();
     this.keyboard.update();
-    if (this.keyboard.pressed("A")) this.player.translateX(-this.speed); //Velocidade está dobrando na diagonal
-    if (this.keyboard.pressed("D")) this.player.translateX(this.speed);
-    if (this.keyboard.pressed("W")) this.player.translateZ(-this.speed);
-    if (this.keyboard.pressed("S")) this.player.translateZ(this.speed);
+  }
+
+  initializeCamera(){
+    const position = new THREE.Vector3(-10,10,10)
+
+    this.camera.holder.add(this.camera.camera);
+    this.camera.holder.position.copy(position);
+
+    this.add(this.camera.holder); 
+    this.camera.camera.lookAt(0,0,0);   
   }
 
   criaParede(x, y, z) {

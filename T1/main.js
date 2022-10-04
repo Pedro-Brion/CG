@@ -4,20 +4,15 @@ import MainScene from "./scene.js";
 import { GLTFLoader } from "../build/jsm/loaders/GLTFLoader.js";
 import {
   initRenderer,
-  initCamera,
   initDefaultBasicLight,
   onWindowResize,
-  createGroundPlaneWired,
-  getMaxSize,
 } from "../libs/util/util.js";
-import { TrackballControls } from "../build/jsm/controls/TrackballControls.js";
 
-let scene, renderer, camera, light; // Initial variables
-scene = new MainScene(); // Create main scene
+let scene, renderer, light; // Initial variables
 renderer = initRenderer(); // Init a basic renderer
-camera = initCamera(new THREE.Vector3(0, 15, 30)); // Init camera in this position
+scene = new MainScene(); // Create main scene
+const camera= scene.camera.camera;
 light = initDefaultBasicLight(scene); // Create a basic light to illuminate the scene
-var trackballControls = new TrackballControls( camera, renderer.domElement );
 
 // Listen window size changes
 window.addEventListener(
@@ -95,8 +90,7 @@ scene.initialize();
 
 render();
 function render() {
-  scene.update()
-  trackballControls.update();
+  scene.update();
   requestAnimationFrame(render);
   renderer.render(scene, camera); // Render scene
 }
