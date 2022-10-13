@@ -18,6 +18,49 @@
   <div id="webgl-output">     
     <script type="module" src="main.js"></script>
   </div>
+  <pre class="display">
+    teste
+  </pre>
+  <div class="controls">
+    <p class="key w">W</p>
+    <div class="flex">
+      <p class="key a">A</p>
+      <p class="key s">S</p>
+      <p class="key d">D</p>
+    </div>
+  </div>
 </body>
+
+<style>
+  body{
+    position: relative;
+  }
+  .display, .controls{
+    position: absolute;
+    font-size: 20px;
+    color: white;
+  }
+  .display {    
+    top: 20px;
+    right: 20px;
+  }
+  .controls {    
+    top: 20px;
+    left: 20px;
+  }
+  .key{
+    position: relative;
+    margin:0;
+  }
+  .w{
+    left: 28px;
+  }
+  .a,.s,.d{
+    margin-left: 10px;
+  }
+  .flex{
+    display: flex;
+  }
+</style>
 
 </html>

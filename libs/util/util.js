@@ -36,7 +36,6 @@ export function degreesToRadians(degrees)
   return degrees * (pi/180);
 }
 
-
 /**
  * Convert radians to degrees
  */

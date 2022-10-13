@@ -2,15 +2,28 @@ import * as THREE from "three";
 import { createGroundPlaneWired } from "../libs/util/util.js";
 import KeyboardState from '../libs/util/KeyboardState.js';
 import Player from "./player.js";
+
+import { degreesToRadians, radiansToDegrees  } from '../libs/util/util.js';
+
 export default class MainScene extends THREE.Scene {
 
-
   plane; //Ground Plane
-  player = new Player(); //Player
+  player; //Player
   paredes = []; //Walls
   obstaculo = []; // Obstacles
   keyboard = new KeyboardState();
-  s=72;
+  s=72;  
+  clock = new THREE.Clock();
+
+  //Infos
+  display = document.querySelector(".display");
+
+  controls = {
+    w: document.querySelector(".w"),
+    s: document.querySelector(".s"),
+    a: document.querySelector(".a"),
+    d: document.querySelector(".d"),
+  }
   
   camera={
     holder:new THREE.Object3D(),
@@ -20,9 +33,13 @@ export default class MainScene extends THREE.Scene {
 
   speed=0.1;
 
+  constructor(){
+    super();
+    this.player = new Player(this.keyboard)
+  }
+
   //Função para adicionar elementos iniciais da cena
   initialize() {
-    this.player.initialize();
     //Creating Ground Plane
     this.plane = createGroundPlaneWired(20, 20, "rgb(255,200,23)");
     this.add(this.plane);
@@ -30,13 +47,13 @@ export default class MainScene extends THREE.Scene {
     this.add(this.player.obj);
 
     //Creating Wall Objects
-    this.criaParede(0, 1.5, 10);
-    this.criaParede(0, 1.5, -10);
-    this.criaParede(10, 1.5, 0);
-    this.criaParede(-10, 1.5, 0);
+    // this.criaParede(0, 1.5, 10);
+    // this.criaParede(0, 1.5, -10);
+    // this.criaParede(10, 1.5, 0);
+    // this.criaParede(-10, 1.5, 0);
 
-    this.paredes[2].rotateY(Math.PI / 2);
-    this.paredes[3].rotateY(Math.PI / 2);
+    // this.paredes[2].rotateY(Math.PI / 2);
+    // this.paredes[3].rotateY(Math.PI / 2);
 
     let axesHelper = new THREE.AxesHelper(12);
     this.add(axesHelper);
@@ -53,6 +70,7 @@ export default class MainScene extends THREE.Scene {
   }
 
   update() {
+    let delta = this.clock.getDelta();
     
     let playerPosition = new THREE.Vector3();
     const cameraOffset = new THREE.Vector3(-10,10,10);
@@ -60,26 +78,16 @@ export default class MainScene extends THREE.Scene {
     this.player.obj.getWorldPosition(playerPosition);
     this.camera.holder.position.copy(playerPosition.add(cameraOffset));
 
-    if (this.keyboard.pressed("W")) {
-      this.player.moveForward(this.speed);
-      this.player.changeAngle('north')
-    };    
-    if (this.keyboard.pressed("S")) {
-      this.player.moveForward(this.speed)
-      this.player.changeAngle("south")
-    };
-    if (this.keyboard.pressed("A")) {
-      this.player.moveForward(this.speed)
-      this.player.changeAngle("west")
-    };
-    if (this.keyboard.pressed("D")) {
-      this.player.moveForward(this.speed)
-      this.player.changeAngle("east")
-    };
+    for(let control of Object.keys(this.controls)){
+      if (this.keyboard.pressed(control.toUpperCase()))
+        this.controls[control].style.color="red";
+      else  
+      this.controls[control].style.color="white";
+    }    
 
-
-    this.player.update();
+    this.player.update(delta);
     this.keyboard.update();
+    this.updateDisplay();
   }
 
   initializeCamera(){
@@ -90,6 +98,12 @@ export default class MainScene extends THREE.Scene {
 
     this.add(this.camera.holder); 
     this.camera.camera.lookAt(0,0,0);   
+  }
+
+  updateDisplay(){        
+    this.display.innerHTML=
+    `      State: ${this.player.state}
+      WalkingDirection: ${JSON.stringify(this.player.walkDirection)}`
   }
 
   criaParede(x, y, z) {
