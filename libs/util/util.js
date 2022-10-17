@@ -291,13 +291,13 @@ export function initCamera(initialPosition) {
     return camera;
 }
 
-export function initDefaultBasicLight(scene, castShadow = false, position = new THREE.Vector3(2, 1, 1), 
+export function initDefaultBasicLight(scene, castShadow = true, position = new THREE.Vector3(2, 1, 1), 
                                       shadowSide = 16, shadowMapSize = 512, shadowNear = 0.1, shadowFar = 100 ) 
 {
   const ambientLight = new THREE.HemisphereLight(
     'white', // bright sky color
     'darkslategrey', // dim ground color
-    0.5, // intensity
+    0.75, // intensity
   );
 
   const mainLight = new THREE.DirectionalLight('white', 0.7);
@@ -332,10 +332,10 @@ export function initDefaultSpotlight(scene, initialPosition) {
     spotLight.castShadow = true;
     spotLight.distance = 0;    
     spotLight.decay = 2;
-    spotLight.penumbra = 0.5;
-    spotLight.angle = degreesToRadians(40);    
-    spotLight.shadow.mapSize.width = 512;
-    spotLight.shadow.mapSize.height = 512;
+    spotLight.penumbra = .2;
+    spotLight.angle = degreesToRadians(30);    
+    spotLight.shadow.mapSize.width = 1024;
+    spotLight.shadow.mapSize.height = 1024;
     scene.add(spotLight);
 
     var ambientLight = new THREE.AmbientLight(0x343434);
@@ -535,7 +535,7 @@ export function createGroundPlaneWired(width, height, gcolor = null, widthSegmen
   
   var wireframe = new THREE.WireframeGeometry( planeGeometry );
     var line = new THREE.LineSegments( wireframe );
-    line.material.color.setStyle( "rgb(150, 150, 150)" );  
+    line.material.color.setStyle( "rgb(50, 50, 10)" );  
 
   var plane = new THREE.Mesh(planeGeometry, planeMaterial);
      plane.receiveShadow = true;  

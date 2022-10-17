@@ -10,10 +10,15 @@ export default class MainScene extends THREE.Scene {
   plane; //Ground Plane
   player; //Player
   paredes = []; //Walls
-  obstaculo = []; // Obstacles
   keyboard = new KeyboardState();
-  s=72;  
+  s=90;  
   clock = new THREE.Clock();
+
+  obstaclesHitbox = []; // Obstacles
+  obstaclesObj = [];
+  floor = [];
+
+  cameraOffset = new THREE.Vector3(-20,20,20)
 
   //Infos
   display = document.querySelector(".display");
@@ -27,53 +32,73 @@ export default class MainScene extends THREE.Scene {
   
   camera={
     holder:new THREE.Object3D(),
-    camera:new THREE.OrthographicCamera(-window.innerWidth / this.s, window.innerWidth / this.s,
-    window.innerHeight / this.s, window.innerHeight / -this.s, -this.s, this.s),
+    cameraOrto:new THREE.OrthographicCamera(-window.innerWidth / this.s, window.innerWidth / this.s,
+    window.innerHeight / this.s, window.innerHeight / -this.s, 0.1, 9999),
+    cameraPerspective: new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000)
   }
+  
+  actualCamera;
 
   speed=0.1;
 
   constructor(){
     super();
-    this.player = new Player(this.keyboard)
+    this.player = new Player(this.keyboard, this);
+    this.actualCamera = this.camera.cameraOrto;
+    this.initialize();
   }
 
   //Função para adicionar elementos iniciais da cena
   initialize() {
     //Creating Ground Plane
-    this.plane = createGroundPlaneWired(20, 20, "rgb(255,200,23)");
+    this.plane = createGroundPlaneWired(250, 250, "rgb(255,200,23)");
+    this.plane.position.set(0,-.2,0);
     this.add(this.plane);
+    let axesHelper = new THREE.AxesHelper(20)
+    // this.add(axesHelper);
+
+    this.initializeCamera();
 
     this.add(this.player.obj);
 
-    //Creating Wall Objects
-    // this.criaParede(0, 1.5, 10);
-    // this.criaParede(0, 1.5, -10);
-    // this.criaParede(10, 1.5, 0);
-    // this.criaParede(-10, 1.5, 0);
-
-    // this.paredes[2].rotateY(Math.PI / 2);
-    // this.paredes[3].rotateY(Math.PI / 2);
-
-    let axesHelper = new THREE.AxesHelper(12);
-    this.add(axesHelper);
-
-    //Creating Obstacles Objects
-
-    this.criaCubo(5, .5, 1);
     this.criaCubo(-5, .5, 1);
-    this.criaCubo(1, .5, -5);
+    this.criaCubo(5, .5, 1);
     this.criaCubo(1, .5, 5);
+    this.criaCubo(5, .5, -5);
+    //creating ground tiles
+    for(let i= -50; i<= 50; i++){
+       for(let j= -50; j<=50; j++){
 
-    
-    this.initializeCamera();
+        this.criaChao(i*(2.15+.05),-.05,j*(2.15+.05));
+        }
+     }
+
+   
+    //creating walls
+
+     //wall 1
+    for(let i= -110; i<=110;i++){
+          this.criaParede(i,0.5,110);
+    }
+    //wall 2
+    for(let i= -110; i<=110;i++){
+      this.criaParede(i,0.5,-110);
+    }
+    //wall 3
+    for(let i= -110; i<=110;i++){
+      this.criaParede(110,0.5,i);
+    }
+    //wall 4
+    for(let i= -110; i<=110;i++){
+      this.criaParede(-110,0.5,i);
+    }
   }
 
   update() {
     let delta = this.clock.getDelta();
     
     let playerPosition = new THREE.Vector3();
-    const cameraOffset = new THREE.Vector3(-10,10,10);
+    const cameraOffset = this.cameraOffset;
     
     this.player.obj.getWorldPosition(playerPosition);
     this.camera.holder.position.copy(playerPosition.add(cameraOffset));
@@ -83,43 +108,83 @@ export default class MainScene extends THREE.Scene {
         this.controls[control].style.color="red";
       else  
       this.controls[control].style.color="white";
-    }    
+    }
+    
+    if (this.keyboard.pressed("C")){      
+      if(this.actualCamera == this.camera.cameraOrto) this.actualCamera = this.camera.cameraPerspective
+      else this.actualCamera = this.camera.cameraOrto;
+    } 
 
-    this.player.update(delta);
+    this.player.update(delta, this.obstaclesHitbox);
     this.keyboard.update();
     this.updateDisplay();
   }
 
   initializeCamera(){
-    const position = new THREE.Vector3(-10,10,10)
+    const position = this.cameraOffset;
 
-    this.camera.holder.add(this.camera.camera);
+    this.camera.holder.add(this.camera.cameraOrto);
+    this.camera.holder.add(this.camera.cameraPerspective);
     this.camera.holder.position.copy(position);
 
     this.add(this.camera.holder); 
-    this.camera.camera.lookAt(0,0,0);   
+    this.camera.cameraOrto.lookAt(0,0,0);   
+    this.camera.cameraPerspective.lookAt(0,0,0);   
+  }
+
+  getCamera(){
+    return this.actualCamera;
   }
 
   updateDisplay(){        
     this.display.innerHTML=
     `      State: ${this.player.state}
-      WalkingDirection: ${JSON.stringify(this.player.walkDirection)}`
+      WalkingDirection: ${JSON.stringify(this.player.obj.position)}`
+  }
+
+  criaChao(x, y, z) {
+    const geometry = new THREE.BoxGeometry(2.15, 0.1, 2.15);
+    const material = new THREE.MeshStandardMaterial({ color: 'rgb(255,255,155)' });
+    const cube = new THREE.Mesh(geometry, material);   
+
+    cube.position.set(x, y, z);
+    this.add(cube);
+  }
+  
+  criaCubo(x, y, z) {
+    const geometry = new THREE.BoxGeometry(2.15, 2.15, 2.15);
+    const material = new THREE.MeshStandardMaterial({ color: 'rgb(150,150,30)' });
+    const cube = new THREE.Mesh(geometry, material);   
+    
+    cube.castShadow = true;
+    cube.position.set(x, y, z);
+    
+    const box = new THREE.Box3().setFromObject(cube);
+    geometry.computeBoundingBox();
+    box.copy(geometry.boundingBox).applyMatrix4( cube.matrixWorld );
+    
+    const helper = new THREE.Box3Helper( box, 0xffff00 );
+    this.add(cube);
+
+    this.obstaclesHitbox.push(box);
+    this.obstaclesObj.push(cube);
   }
 
   criaParede(x, y, z) {
-    const geometry = new THREE.BoxGeometry(20, 3, 0.2);
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    const cube = new THREE.Mesh(geometry, material);
-    this.paredes.push(cube);
+    const geometry = new THREE.BoxGeometry(2.15, 2.15, 2.15);
+    const material = new THREE.MeshStandardMaterial({ color: 'rgb(150,150,30)' });
+    const cube = new THREE.Mesh(geometry, material);   
+    
+    cube.castShadow = true;
     cube.position.set(x, y, z);
+    
+    const box = new THREE.Box3().setFromObject(cube);
+    geometry.computeBoundingBox();
+    box.copy(geometry.boundingBox).applyMatrix4( cube.matrixWorld );
+    
+    const helper = new THREE.Box3Helper( box, 0xffff00 );
     this.add(cube);
-  }
-  criaCubo(x, y, z) {
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    const cube = new THREE.Mesh(geometry, material);
-    this.obstaculo.push(cube);
-    cube.position.set(x, y, z);
-    this.add(cube);
+
+    this.obstaclesHitbox.push(box);
   }
 }
